@@ -1,67 +1,31 @@
-import os
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-from datetime import datetime
-
-TOKEN = "8333920670:AAGFd22BxK-wln5i1CBWXPdNaB9Ni-Mxa0g"
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "مرحباً بك في البوت التجريبي!\n\n"
-        "الأوامر المتاحة:\n"
-        "/start - بدء البوت\n"
-        "/help - المساعدة\n"
-        "/time - الوقت الحالي\n"
-        "/info - معلومات عنك\n"
-        "/ping - فحص البوت"
-    )
-
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "هذا بوت تجريبي.\n"
-        "تقدر تجرب فيه أي أوامر جديدة براحتك."
-    )
-
-async def time_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    await update.message.reply_text(f"الوقت الحالي: {now}")
+from telegram.ext import Application, CommandHandler, ContextTypes
 
 async def info_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    chat = update.effective_chat
+    # التأكد من أن المستخدم أدخل يوزر نيم
+    if not context.args:
+        await update.message.reply_text("⚠️ يرجى إرسال اليوزر نيم بعد الأمر.\nمثال: `/info @username`")
+        return
 
-    text = (
-        f"📋 معلوماتك:\n\n"
-        f"الاسم: {user.first_name or 'غير متوفر'}\n"
-        f"الاسم الأخير: {user.last_name or 'غير متوفر'}\n"
-        f"اليوزرنيم: @{user.username if user.username else 'ما فيه'}\n"
-        f"الآيدي: `{user.id}`\n"
-        f"لغة الحساب: {user.language_code or 'غير معروفة'}\n"
-        f"هل هو بوت؟: {'نعم' if user.is_bot else 'لا'}\n"
-        f"حساب مميز (Premium): {'نعم' if getattr(user, 'is_premium', False) else 'لا'}\n"
-        f"نوع الشات: {chat.type}\n"
-        f"آيدي الشات: `{chat.id}`"
-    )
-    await update.message.reply_text(text, parse_mode="Markdown")
+    username = context.args[0].replace('@', '')
 
-async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("البوت شغال 100% ⚡")
+    try:
+        # جلب معلومات الشات
+        chat = await context.bot.get_chat(f"@{username}")
+        
+        response = (
+            f"👤 **معلومات المستخدم:**\n\n"
+            f"🔹 **الاسم:** {chat.first_name} {chat.last_name or ''}\n"
+            f"🔹 **الأيدي (ID):** `{chat.id}`\n"
+            f"🔹 **اليوزر:** @{chat.username}\n"
+        )
+        if chat.bio:
+            response += f"🔹 **البايو:** {chat.bio}\n"
 
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(f"أنت قلت: {update.message.text}")
+        await update.message.reply_text(response, parse_mode="Markdown")
+        
+    except Exception as e:
+        await update.message.reply_text("❌ لم أتمكن من العثور على هذا المستخدم.")
 
-def main():
-    app = Application.builder().token(TOKEN).build()
-
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("help", help_command))
-    app.add_handler(CommandHandler("time", time_command))
-    app.add_handler(CommandHandler("info", info_command))
-    app.add_handler(CommandHandler("ping", ping))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
-
-    print("البوت يعمل...")
-    app.run_polling()
-
-if __name__ == "__main__":
-    main()
+# أضف المعالج في دالة الـ main الخاصة بك:
+# app.add_handler(CommandHandler("info", info_command))
