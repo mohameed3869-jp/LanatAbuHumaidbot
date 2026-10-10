@@ -1,4 +1,5 @@
 import os
+import random
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from datetime import datetime
@@ -13,6 +14,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/help - المساعدة\n"
         "/time - الوقت الحالي\n"
         "/info - معلومات عنك\n"
+        "/id - عرض الآيدي\n"
+        "/random - رقم عشوائي\n"
+        "/joke - نكتة\n"
         "/ping - فحص البوت"
     )
 
@@ -22,7 +26,10 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/start - بدء البوت\n"
         "/help - المساعدة\n"
         "/time - الوقت الحالي\n"
-        "/info - يعرض معلوماتك\n"
+        "/info - معلومات عنك\n"
+        "/id - عرض الآيدي\n"
+        "/random - رقم عشوائي\n"
+        "/joke - نكتة\n"
         "/ping - فحص البوت"
     )
 
@@ -48,6 +55,24 @@ async def info_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_text(text, parse_mode="Markdown")
 
+async def id_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    await update.message.reply_text(f"آيديك: `{user.id}`", parse_mode="Markdown")
+
+async def random_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    number = random.randint(1, 100)
+    await update.message.reply_text(f"الرقم العشوائي: {number}")
+
+async def joke_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    jokes = [
+        "ليش الكمبيوتر بارد؟ لأنه فتح الويندوز 😂",
+        "إيش قال الواحد للصفر؟ انت ما لك قيمة 😆",
+        "ليش الدجاجة عبرت الشارع؟ عشان توصل للجهة الثانية 🐔",
+        "مرة واحد راح للدكتور قال له: أحس إني بموت. الدكتور: لا تشيل هم، هذا إحساس طبيعي عند اللي بيموتون 😂",
+        "ليش الكتاب حزين؟ لأنه فيه مشاكل كثيرة 📖"
+    ]
+    await update.message.reply_text(random.choice(jokes))
+
 async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("البوت شغال 100% ⚡")
 
@@ -65,6 +90,9 @@ def main():
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("time", time_command))
     app.add_handler(CommandHandler("info", info_command))
+    app.add_handler(CommandHandler("id", id_command))
+    app.add_handler(CommandHandler("random", random_command))
+    app.add_handler(CommandHandler("joke", joke_command))
     app.add_handler(CommandHandler("ping", ping))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
