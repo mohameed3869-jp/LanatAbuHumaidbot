@@ -1,1 +1,1 @@
-pip install python-telegram-bot httpx
+pip install -U python-telegram-bot requests
