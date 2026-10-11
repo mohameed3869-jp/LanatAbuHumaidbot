@@ -1,48 +1,47 @@
 import os
-import random
-import httpx
+import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, ContextTypes
-from datetime import datetime
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-TOKEN = os.environ.get("TOKEN")
+# تفعيل سجل الأخطاء لمراقبة أي مشكلة في التيرمينال
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+TOKEN = os.environ.get("TOKEN") # أو ضع التتوكن هنا مباشرة للتجربة
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "مرحباً بك في بوت فحص وسائل التواصل الاجتماعي! 🌐\n\n"
-        "أرسل اليوزر وسأعطيك الروابط المباشرة والمعلومات المتاحة:\n"
+        "استخدم الأوامر التالية مع كتابة اليوزر بعدها مباشرة:\n"
         "🎵 تيك توك: `/tiktok username`\n"
         "📸 إنستغرام: `/insta username`\n"
-        "📺 يوتيوب: `/youtube channel`\n"
+        "📺 يوتيوب: `/youtube channel_name`\n"
         "🐦 تويتر: `/twitter username`",
         parse_mode="Markdown"
     )
 
-# 1. تيك توك (مع أزرار تفاعلية وروابط مباشرة)
 async def tiktok_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # التحقق مما إذا قام المستخدم كتابة يوزر أم لا
     if not context.args:
-        await update.message.reply_text("⚠️ أرسل يوزر تيك توك بعد الأمر.\nمثال: `/tiktok username`", parse_mode="Markdown")
+        await update.message.reply_text("⚠️ يرجى كتابة اليوزر بعد الأمر.\nمثال: `/tiktok mohammed`", parse_mode="Markdown")
         return
     
     username = context.args[0].lstrip("@")
     profile_url = f"https://www.tiktok.com/@{username}"
     
-    # أزرار تفاعلية تفتح الحساب مباشرة
     keyboard = [[InlineKeyboardButton("🔗 فتح حساب تيك توك", url=profile_url)]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await update.message.reply_text(
-        f"🎵 **حساب TikTok:**\n\n"
+        f"🎵 **معلومات حساب TikTok:**\n\n"
         f"👤 اليوزر: `@{username}`\n"
-        f"🔗 الرابط: {profile_url}",
+        f"🔗 الرابط جاهز للاستخدام.",
         parse_mode="Markdown",
         reply_markup=reply_markup
     )
 
-# 2. إنستغرام
 async def insta_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
-        await update.message.reply_text("⚠️ أرسل يوزر إنستغرام بعد الأمر.\nمثال: `/insta username`", parse_mode="Markdown")
+        await update.message.reply_text("⚠️ يرجى كتابة اليوزر بعد الأمر.\nمثال: `/insta mohammed`", parse_mode="Markdown")
         return
     
     username = context.args[0].lstrip("@")
@@ -52,23 +51,22 @@ async def insta_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await update.message.reply_text(
-        f"📸 **حساب Instagram:**\n\n"
+        f"📸 **معلومات حساب Instagram:**\n\n"
         f"👤 اليوزر: `@{username}`\n"
-        f"🔗 الرابط: {profile_url}",
+        f"🔗 الرابط جاهز للاستخدام.",
         parse_mode="Markdown",
         reply_markup=reply_markup
     )
 
-# 3. يوتيوب
 async def youtube_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
-        await update.message.reply_text("⚠️ أرسل اسم القناة بعد الأمر.\nمثال: `/youtube channel_name`", parse_mode="Markdown")
+        await update.message.reply_text("⚠️ يرجى كتابة اسم القناة بعد الأمر.\nمثال: `/youtube mychannel`", parse_mode="Markdown")
         return
     
     query = " ".join(context.args)
-    search_url = f"https://www.youtube.com/results?search_query={query}"
+    search_url = f"https://www.youtube.com/@{query.lstrip('@')}"
     
-    keyboard = [[InlineKeyboardButton("🔗 البحث في يوتيوب", url=search_url)]]
+    keyboard = [[InlineKeyboardButton("🔗 فتح قناة يوتيوب", url=search_url)]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await update.message.reply_text(
@@ -78,10 +76,9 @@ async def youtube_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
-# 4. تويتر / X
 async def twitter_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
-        await update.message.reply_text("⚠️ أرسل يوزر تويتر بعد الأمر.\nمثال: `/twitter username`", parse_mode="Markdown")
+        await update.message.reply_text("⚠️ يرجى كتابة اليوزر بعد الأمر.\nمثال: `/twitter mohammed`", parse_mode="Markdown")
         return
     
     username = context.args[0].lstrip("@")
@@ -92,9 +89,8 @@ async def twitter_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
         f"🐦 **حساب X (تويتر):**\n\n"
-        f"👤 اليوزر: `@{username}`\n"
-        f"🔗 الرابط: {profile_url}",
-        parse_mode="Markdown",
+        f"👤 اليوزر: `@{username}`",
+        parse_message="Markdown",
         reply_markup=reply_markup
     )
 
@@ -103,7 +99,7 @@ def main():
         print("خطأ: التوكن غير موجود")
         return
 
-    app = Application.builder().token(TOKEN).build()
+    app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("tiktok", tiktok_command))
@@ -111,7 +107,7 @@ def main():
     app.add_handler(CommandHandler("youtube", youtube_command))
     app.add_handler(CommandHandler("twitter", twitter_command))
 
-    print("البوت يعمل بنجاح...")
+    print("البوت يعمل بكفاءة وتطوير ميزات التواصل تم بنجاح...")
     app.run_polling()
 
 if __name__ == "__main__":
